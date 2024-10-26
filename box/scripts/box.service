@@ -46,16 +46,17 @@ box_run_crontab() {
   chmod 0755 "${box_run}/root"
 
   if [ "${run_crontab}" = "true" ]; then
-    log Debug "Cron job enabled"
-    echo "${interva_update} ${scripts_dir}/box.tool geosub" >> "${box_run}/root"
-    log Debug "Interval crontab geox and subs: ${interva_update}."
-    log Info "${bin_name} geox updates: ${update_geo}."
-    if [ "${bin_name}" = "clash" ]; then
-      log Info "${bin_name} subscription update: ${update_subscription}."
+    log Debug "crontab job enabled"
+    if [ "$update_subscription" = "true" ] || [ "$update_geo" = "true" ]; then
+      log Debug "Interval crontab: ${interva_update}."
+      echo "${interva_update} ${scripts_dir}/box.tool geosub" >> "${box_run}/root"
+      log Info "${bin_name} geox updates: ${update_geo}."
+      if [ "${bin_name}" = "clash" ]; then
+        log Info "${bin_name} subscription update: ${update_subscription}."
+      fi
     fi
   else
-    log Info "Cron Job disabled"
-    log Info "Crontab geox and subscription is disabled."
+    log Info "crontab Job disabled"
   fi
 }
 
@@ -569,7 +570,7 @@ box_bin_status() {
 
   # Save the process ID to the pid file
   if [ -n "$PID" ]; then
-    sed -Ei "s/^description=(\[.*][[:space:]]*)?/description=[ ⏲ $current_time | ✔ $bin_name service is running!!! ] /g" "$PROPFILE"
+    sed -Ei "s/^description=(\[.*][[:space:]]*)?/description=[ $current_time | 🥰 $bin_name service is running!!! ] /g" "$PROPFILE"
     echo -n "$PID" > "${box_pid}"
   fi
 }
@@ -577,7 +578,7 @@ box_bin_status() {
 start_box() {
   # Clear the log file and add the timestamp and delimiter
   # cd /data/adb/box/bin; chmod 755 *
-  sed -Ei "s/^description=(\[.*][[:space:]]*)?/description=[ ⏲ $current_time | ☹ Module is working! but no service is running ] /g" "$PROPFILE"
+  sed -Ei "s/^description=(\[.*][[:space:]]*)?/description=[ $current_time | 🤪 Module is working! but no service is running ] /g" "$PROPFILE"
 
   echo -n "" > "${box_log}"
   box_version=$(busybox awk '!/^ *#/ && /version=/ { print $0 }' "/data/adb/modules/box_for_root/module.prop" 2>/dev/null)
@@ -637,17 +638,17 @@ start_box() {
   esac
 
   # apk manager check
-  versionName=$(dumpsys package xyz.chz.bfm | grep versionName | busybox awk -F '=' '{print $2}' | sed 's/-.*//')
-  if [[ -n "${versionName}" && $(echo "${versionName}" | busybox awk '{print ($1 < 1.13)}') -eq 1 ]]; then
-    log Error "Update BFR Manager Apps, Use version 1.13.+"
-    log Error "current version: ${versionName}"
-    exit 1
-  else
-    [ -n "${versionName}" ] && log Info "BFR Manager: ${versionName}"
-  fi
-  
+  # versionName=$(dumpsys package xyz.chz.bfm | grep versionName | busybox awk -F '=' '{print $2}' | sed 's/-.*//')
+  # if [[ -n "${versionName}" && $(echo "${versionName}" | busybox awk '{print ($1 < 1.13)}') -eq 1 ]]; then
+    # log Error "Update BFR Manager Apps, Use version 1.13.+"
+    # log Error "current version: ${versionName}"
+    # exit 1
+  # else
+    # [ -n "${versionName}" ] && log Info "BFR Manager: ${versionName}"
+  # fi
+
   # busybox check
-  busybox_code=$(busybox | busybox awk '{print $2}' | busybox grep -oE '[0-9.]*' | head -n 1)
+  busybox_code=$(busybox | busybox grep -oE '[0-9.]*' | head -n 1)
   if [ "$(echo "${busybox_code}" | busybox awk -F. '{printf "%03d%03d%03d\n", $1, $2, $3}')" -lt "$(echo "1.36.1" | busybox awk -F. '{printf "%03d%03d%03d\n", $1, $2, $3}')" ]; then
     log Info "Current $(which busybox) v${busybox_code}"
     log Warning "Please update your busybox to v1.36.1+"
@@ -679,6 +680,24 @@ start_box() {
     count=$((count + 1))
   done
   box_bin_status
+
+  # OOM Killer
+  # box_pid=$(cat ${box_pid})
+  # # Setting oom_adj
+  # echo -17 > /proc/$box_pid/oom_adj
+  # if [ $? -eq 0 ]; then
+    # log Info "set oom_adj for PID $box_pid to -17"
+  # else
+    # log Error "failed to set oom_adj for PID $box_pid"
+  # fi
+  # # Setting process priorities
+  # renice -n -20 -p $box_pid
+  # if [ $? -eq 0 ]; then
+    # log Info "set priority for PID $box_pid to -20"
+  # else
+    # log Error "failed to set priority for PID $box_pid"
+  # fi
+
   true
 }
 
@@ -712,7 +731,7 @@ stop_box() {
     force_stop
   fi
 
-  sed -Ei "s/^description=(\[.*][[:space:]]*)?/description=[ ⏲ $current_time | ✘ $bin_name shutting down, service is stopped !!! ] /g" "$PROPFILE"
+  sed -Ei "s/^description=(\[.*][[:space:]]*)?/description=[ $current_time | 😭 $bin_name shutting down, service is stopped !!! ] /g" "$PROPFILE"
 }
 
 stop_cron() {
