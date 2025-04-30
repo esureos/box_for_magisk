@@ -561,11 +561,11 @@ upxui() {
   xdashboard="${bin_name}/dashboard"
   if [[ "${bin_name}" == @(clash|sing-box) ]]; then
     file_dashboard="${box_dir}/${xdashboard}.zip"
-    url="https://github.com/CHIZI-0618/yacd/archive/refs/heads/gh-pages.zip"
+    url="https://github.com/Zephyruso/zashboard/archive/refs/heads/gh-pages.zip"
     if [ "$use_ghproxy" == true ]; then
       url="${url_ghproxy}/${url}"
     fi
-    dir_name="yacd-gh-pages"
+    dir_name="zashboard-gh-pages"
     log Debug "Download ${url}"
 
     if which curl > /dev/null 2>&1; then
